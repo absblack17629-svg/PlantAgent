@@ -1,0 +1,35 @@
+==================================================
+Dependency Check Results
+==================================================
+
+[OK] FastAPI (0.109.0)
+[OK] uvicorn (0.27.0)
+[OK] SQLAlchemy (2.0.48)
+[OK] redis (7.2.1)
+[OK] langchain (1.2.10)
+[OK] langchain-core (1.2.17)
+[OK] langchain-community (0.0.38)
+[OK] langgraph (0.0.55)
+[OK] pydantic (2.12.5)
+[OK] loguru (0.7.2)
+[OK] openpyxl (3.1.2)
+[OK] psutil (5.9.8)
+[OK] ultralytics (8.3.0)
+[OK] torch (2.2.0+cpu)
+[OK] faiss (1.8.0)
+[OK] sentence-transformers (5.2.3)
+[OK] numpy (1.26.4)
+[OK] Pillow (10.1.0)
+[OK] opencv-python (4.8.1)
+[OK] requests (2.32.5)
+[OK] passlib (1.7.4)
+[OK] python-jose (3.3.0)
+[OK] tiktoken (0.12.0)
+[OK] tenacity (unknown)
+[OK] python-dotenv (unknown)
+[OK] email-validator (2.1.0)
+[OK] pydantic-settings (2.12.0)
+
+==================================================
+Summary: 27 checked, 0 missing, 0 errors
+==================================================

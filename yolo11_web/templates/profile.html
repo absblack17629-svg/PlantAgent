@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>个人中心 - YOLO11 智能农业系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72F2 25%, #D96570 50%, #F2A25C 75%, #4285F4 100%);
+            --gemini-blue: #4285F4;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --text-primary: #1F1F1F;
+            --text-secondary: #5F6368;
+            --border-color: #E8EAED;
+            --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
+            --radius-md: 16px;
+            --radius-full: 9999px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-full);
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            box-shadow: var(--shadow-md);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .user-info h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .user-info p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-list {
+            list-style: none;
+        }
+
+        .menu-item {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-secondary);
+        }
+
+        .menu-item:hover {
+            background: var(--gemini-blue);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-item i {
+            font-size: 20px;
+            width: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gemini-blue);
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: #EA4335;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #D33828;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: var(--gemini-blue);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+
+        <div class="header">
+            <div class="avatar-large">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h1 id="username">加载中...</h1>
+                <p id="email">加载中...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-th-large"></i>
+                功能菜单
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item" onclick="window.location.href='/favorites'">
+                    <div class="menu-item-left">
+                        <i class="fas fa-star"></i>
+                        <span>我的收藏</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </li>
+                <li class="menu-item" onclick="window.location.href='/user/history'">
+                    <div class="menu-item-left">
+                        <i class="fas fa-history"></i>
+                        <span>浏览历史</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </li>
+                <li class="menu-item" onclick="showEditForm()">
+                    <div class="menu-item-left">
+                        <i class="fas fa-edit"></i>
+                        <span>编辑资料</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </li>
+                <li class="menu-item" onclick="logout()">
+                    <div class="menu-item-left">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>退出登录</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card hidden" id="editForm">
+            <div class="card-title">
+                <i class="fas fa-edit"></i>
+                编辑个人资料
+            </div>
+            <form onsubmit="updateProfile(event)">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="editUsername" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-input" id="editEmail">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">新密码（留空则不修改）</label>
+                    <input type="password" class="form-input" id="editPassword" placeholder="留空则不修改">
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> 保存修改
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEditForm()">
+                        取消
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        window.onload = function() {
+            checkLogin();
+            loadUserInfo();
+        };
+
+        function checkLogin() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadUserInfo() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('username').textContent = currentUser.username;
+                    document.getElementById('email').textContent = currentUser.email;
+                    document.getElementById('editUsername').value = currentUser.username;
+                    document.getElementById('editEmail').value = currentUser.email;
+                } else {
+                    alert('获取用户信息失败');
+                    logout();
+                }
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+                alert('加载失败：' + error.message);
+            }
+        }
+
+        function showEditForm() {
+            document.getElementById('editForm').classList.remove('hidden');
+        }
+
+        function hideEditForm() {
+            document.getElementById('editForm').classList.add('hidden');
+        }
+
+        async function updateProfile(event) {
+            event.preventDefault();
+            
+            const token = localStorage.getItem('token');
+            const email = document.getElementById('editEmail').value;
+            const password = document.getElementById('editPassword').value;
+
+            const updateData = { email };
+            if (password) {
+                updateData.password = password;
+            }
+
+            try {
+                const response = await fetch('/api/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    alert('✅ 更新成功！');
+                    hideEditForm();
+                    loadUserInfo();
+                } else {
+                    const data = await response.json();
+                    alert('❌ 更新失败：' + (data.detail || '未知错误'));
+                }
+            } catch (error) {
+                console.error('更新失败:', error);
+                alert('❌ 更新失败：' + error.message);
+            }
+        }
+
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                window.location.href = '/login';
+            }
+        }
+    </script>
+</body>
+</html>

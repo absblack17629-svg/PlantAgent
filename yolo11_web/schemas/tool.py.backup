@@ -1,0 +1,287 @@
+# -*- coding: utf-8 -*-
+"""
+工具相关 Schema
+
+定义工具执行结果和相关模型。
+"""
+
+from typing import Any, Optional, Dict
+from pydantic import BaseModel, Field
+import json
+
+
+class ToolResult(BaseModel):
+    """工具执行结果模型
+    
+    统一的工具执行结果格式，支持成功和失败两种状态。
+    
+    Attributes:
+        output: 执行输出内容
+        error: 错误信息（如果失败）
+        success: 是否成功
+        metadata: 额外的元数据
+    """
+    output: Any = Field(default=None, description="执行输出")
+    error: Optional[str] = Field(default=None, description="错误信息")
+    success: bool = Field(default=True, description="是否成功")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="元数据")
+    
+    class Config:
+        arbitrary_types_allowed = True
+        json_schema_extra = {
+            "example": {
+                "output": {"disease": "bacterial_blight", "confidence": 0.95},
+                "error": None,
+                "success": True,
+                "metadata": {"execution_time": 1.23, "model": "yolo11"}
+            }
+        }
+    
+    def __bool__(self) -> bool:
+        """布尔值转换
+        
+        Returns:
+            是否成功
+        """
+        return self.success
+    
+    def __str__(self) -> str:
+        """字符串表示
+        
+        Returns:
+            格式化的字符串
+        """
+        if self.error:
+            return f"Error: {self.error}"
+        
+        if isinstance(self.output, str):
+            return self.output
+        elif isinstance(self.output, dict):
+            return json.dumps(self.output, ensure_ascii=False, indent=2)
+        else:
+            return str(self.output)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典
+        
+        Returns:
+            字典格式的结果
+        """
+        return self.model_dump(exclude_none=True)
+    
+    def to_message_content(self) -> str:
+        """转换为消息内容格式
+        
+        Returns:
+            适合作为消息内容的字符串
+        """
+        if self.error:
+            return f"工具执行失败: {self.error}"
+        
+        if isinstance(self.output, str):
+            return self.output
+        elif isinstance(self.output, dict):
+            return json.dumps(self.output, ensure_ascii=False)
+        else:
+            return str(self.output)
+    
+    @classmethod
+    def success_result(
+        cls,
+        output: Any,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> "ToolResult":
+        """创建成功结果
+        
+        Args:
+            output: 输出内容
+            metadata: 元数据
+            
+        Returns:
+            成功的工具结果
+        """
+        return cls(
+            output=output,
+            success=True,
+            metadata=metadata or {}
+        )
+    
+    @classmethod
+    def error_result(
+        cls,
+        error: str,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> "ToolResult":
+        """创建失败结果
+        
+        Args:
+            error: 错误信息
+            metadata: 元数据
+            
+        Returns:
+            失败的工具结果
+        """
+        return cls(
+            error=error,
+            success=False,
+            metadata=metadata or {}
+        )
+    
+    @classmethod
+    def from_exception(
+        cls,
+        exception: Exception,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> "ToolResult":
+        """从异常创建失败结果
+        
+        Args:
+            exception: 异常对象
+            metadata: 元数据
+            
+        Returns:
+            失败的工具结果
+        """
+        error_msg = f"{type(exception).__name__}: {str(exception)}"
+        return cls.error_result(error_msg, metadata)
+    
+    def add_metadata(self, key: str, value: Any) -> "ToolResult":
+        """添加元数据
+        
+        Args:
+            key: 键名
+            value: 值
+            
+        Returns:
+            自身（支持链式调用）
+        """
+        self.metadata[key] = value
+        return self
+    
+    def with_metadata(self, **kwargs) -> "ToolResult":
+        """批量添加元数据
+        
+        Args:
+            **kwargs: 键值对
+            
+        Returns:
+            自身（支持链式调用）
+        """
+        self.metadata.update(kwargs)
+        return self
+
+
+class ToolParameter(BaseModel):
+    """工具参数定义模型
+    
+    定义工具的参数 schema。
+    
+    Attributes:
+        type: 参数类型
+        properties: 属性定义
+        required: 必需参数列表
+        description: 参数描述
+    """
+    type: str = Field(default="object", description="参数类型")
+    properties: Dict[str, Any] = Field(default_factory=dict, description="属性定义")
+    required: list = Field(default_factory=list, description="必需参数")
+    description: Optional[str] = Field(None, description="参数描述")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "type": "object",
+                "properties": {
+                    "image_path": {
+                        "type": "string",
+                        "description": "图像文件路径"
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "description": "置信度阈值",
+                        "default": 0.5
+                    }
+                },
+                "required": ["image_path"]
+            }
+        }
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典
+        
+        Returns:
+            字典格式的参数定义
+        """
+        return self.model_dump(exclude_none=True)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ToolParameter":
+        """从字典创建
+        
+        Args:
+            data: 参数定义字典
+            
+        Returns:
+            工具参数实例
+        """
+        return cls(**data)
+
+
+class ToolDefinition(BaseModel):
+    """工具定义模型
+    
+    完整的工具定义，包括名称、描述和参数。
+    
+    Attributes:
+        name: 工具名称
+        description: 工具描述
+        parameters: 参数定义
+    """
+    name: str = Field(..., description="工具名称")
+    description: str = Field(..., description="工具描述")
+    parameters: Optional[ToolParameter] = Field(None, description="参数定义")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "detect_disease",
+                "description": "检测图像中的水稻病害",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "image_path": {
+                            "type": "string",
+                            "description": "图像文件路径"
+                        }
+                    },
+                    "required": ["image_path"]
+                }
+            }
+        }
+    
+    def to_function_call_format(self) -> Dict[str, Any]:
+        """转换为 function calling 格式
+        
+        Returns:
+            适合 LLM function calling 的格式
+        """
+        result = {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+            }
+        }
+        
+        if self.parameters:
+            result["function"]["parameters"] = self.parameters.to_dict()
+        
+        return result
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典
+        
+        Returns:
+            字典格式的工具定义
+        """
+        return self.model_dump(exclude_none=True)

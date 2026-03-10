@@ -1,0 +1,170 @@
+# -*- coding: utf-8 -*-
+"""
+Agent 相关 Schema
+
+定义 Agent 的角色、状态和配置模型。
+"""
+
+from enum import Enum
+from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field
+
+
+class AgentRole(str, Enum):
+    """Agent 角色枚举
+    
+    定义系统中不同类型的 Agent 角色。
+    """
+    DETECTION = "detection"  # 检测 Agent，负责图像检测
+    KNOWLEDGE = "knowledge"  # 知识 Agent，负责知识查询
+    PLANNING = "planning"    # 规划 Agent，负责任务规划
+    PLANNER = "planner"      # 规划器（别名）
+    COORDINATOR = "coordinator"  # 协调 Agent，负责多 Agent 协调
+    GENERAL = "general"      # 通用 Agent
+    
+    # 九节点专用角色
+    INTENT_ANALYZER = "intent_analyzer"  # 意图分析
+    CONTEXT_MANAGER = "context_manager"  # 上下文管理
+    MEMORY_MANAGER = "memory_manager"    # 记忆管理
+    VALIDATOR = "validator"              # 验证器
+    EXECUTOR = "executor"                # 执行器
+    KNOWLEDGE_RETRIEVER = "knowledge_retriever"  # 知识检索
+    RESPONSE_GENERATOR = "response_generator"    # 响应生成
+
+
+class AgentState(str, Enum):
+    """Agent 状态枚举
+    
+    定义 Agent 的执行状态。
+    """
+    IDLE = "idle"          # 空闲状态，等待任务
+    RUNNING = "running"    # 运行状态，正在执行任务
+    FINISHED = "finished"  # 完成状态，任务已完成
+    ERROR = "error"        # 错误状态，执行出错
+    PAUSED = "paused"      # 暂停状态，任务暂停
+
+
+class AgentConfig(BaseModel):
+    """Agent 配置模型
+    
+    定义 Agent 的配置参数。
+    
+    Attributes:
+        name: Agent 名称
+        role: Agent 角色
+        description: Agent 描述
+        max_steps: 最大执行步骤数
+        llm_config: LLM 配置
+        tools: 可用工具列表
+        metadata: 额外的元数据
+    """
+    name: str = Field(..., description="Agent 名称")
+    role: AgentRole = Field(..., description="Agent 角色")
+    description: Optional[str] = Field(None, description="Agent 描述")
+    max_steps: int = Field(default=10, description="最大执行步骤数", ge=1, le=100)
+    llm_config: Optional[Dict[str, Any]] = Field(None, description="LLM 配置")
+    tools: Optional[list] = Field(default_factory=list, description="可用工具列表")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="元数据")
+    
+    class Config:
+        use_enum_values = True  # 使用枚举值而不是枚举对象
+        json_schema_extra = {
+            "example": {
+                "name": "detection_agent",
+                "role": "detection",
+                "description": "负责水稻病害检测的 Agent",
+                "max_steps": 10,
+                "llm_config": {
+                    "model": "gpt-4",
+                    "temperature": 0.7
+                },
+                "tools": ["yolo_detection", "image_preprocessing"],
+                "metadata": {
+                    "version": "1.0",
+                    "author": "system"
+                }
+            }
+        }
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典
+        
+        Returns:
+            字典格式的配置
+        """
+        return self.model_dump(exclude_none=True)
+    
+    @classmethod
+    def detection_agent(
+        cls,
+        name: str = "detection_agent",
+        max_steps: int = 10,
+        **kwargs
+    ) -> "AgentConfig":
+        """创建检测 Agent 配置
+        
+        Args:
+            name: Agent 名称
+            max_steps: 最大步骤数
+            **kwargs: 其他配置参数
+            
+        Returns:
+            检测 Agent 配置实例
+        """
+        return cls(
+            name=name,
+            role=AgentRole.DETECTION,
+            description="负责图像检测和病害识别",
+            max_steps=max_steps,
+            **kwargs
+        )
+    
+    @classmethod
+    def knowledge_agent(
+        cls,
+        name: str = "knowledge_agent",
+        max_steps: int = 10,
+        **kwargs
+    ) -> "AgentConfig":
+        """创建知识 Agent 配置
+        
+        Args:
+            name: Agent 名称
+            max_steps: 最大步骤数
+            **kwargs: 其他配置参数
+            
+        Returns:
+            知识 Agent 配置实例
+        """
+        return cls(
+            name=name,
+            role=AgentRole.KNOWLEDGE,
+            description="负责知识查询和建议生成",
+            max_steps=max_steps,
+            **kwargs
+        )
+    
+    @classmethod
+    def planning_agent(
+        cls,
+        name: str = "planning_agent",
+        max_steps: int = 10,
+        **kwargs
+    ) -> "AgentConfig":
+        """创建规划 Agent 配置
+        
+        Args:
+            name: Agent 名称
+            max_steps: 最大步骤数
+            **kwargs: 其他配置参数
+            
+        Returns:
+            规划 Agent 配置实例
+        """
+        return cls(
+            name=name,
+            role=AgentRole.PLANNING,
+            description="负责任务规划和流程编排",
+            max_steps=max_steps,
+            **kwargs
+        )

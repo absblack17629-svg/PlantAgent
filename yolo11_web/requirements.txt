@@ -1,0 +1,176 @@
+# YOLO11 智能体系统依赖清单
+# 按依赖层级自底向上排序，不指定版本以避免冲突
+# 使用方法: pip install -r requirements.txt
+
+# ============================================================
+# 第一层：基础工具库（无依赖或最小依赖）
+# ============================================================
+
+# 环境变量管理
+python-dotenv
+
+# 日志系统
+loguru
+
+# 系统监控
+psutil
+
+# 任务调度
+APScheduler
+
+# HTTP 客户端
+requests
+
+# 密码加密
+bcrypt
+passlib
+
+# JWT 认证
+python-jose
+cryptography
+
+# 文件上传
+python-multipart
+
+# 邮箱验证
+email-validator
+
+# Excel 操作
+openpyxl
+
+# 重试机制
+tenacity
+
+# Token 计数
+tiktoken
+
+
+# ============================================================
+# 第二层：数据处理和科学计算
+# ============================================================
+
+# 数值计算
+numpy
+
+# 图像处理
+pillow
+opencv-python
+
+
+# ============================================================
+# 第三层：深度学习框架
+# ============================================================
+
+# PyTorch（YOLO 依赖）
+torch
+torchvision
+
+
+# ============================================================
+# 第四层：数据库和缓存
+# ============================================================
+
+# ORM 框架
+sqlalchemy
+
+# 异步数据库驱动
+aiomysql
+asyncpg
+
+# Redis 客户端
+redis
+hiredis
+
+
+# ============================================================
+# 第五层：Web 框架
+# ============================================================
+
+# FastAPI 核心
+pydantic
+pydantic-settings
+fastapi
+uvicorn
+
+
+# ============================================================
+# 第六层：AI 和 LLM 基础
+# ============================================================
+
+# OpenAI 客户端
+openai
+
+# LangChain 核心
+langchain-core
+langsmith
+
+# 向量数据库
+faiss-cpu
+
+# 嵌入模型
+sentence-transformers
+transformers
+huggingface-hub
+
+
+# ============================================================
+# 第七层：LangChain 生态系统
+# ============================================================
+
+# LangChain 主包
+langchain
+
+# LangChain 社区集成
+langchain-community
+
+# LangChain 文本分割
+langchain-text-splitters
+
+# LangChain OpenAI 集成
+langchain-openai
+
+# LangChain HuggingFace 集成
+langchain-huggingface
+
+
+# ============================================================
+# 第八层：应用层框架
+# ============================================================
+
+# YOLO 目标检测
+ultralytics
+
+# MCP 协议支持
+mcp
+
+
+# ============================================================
+# 可选依赖（如果需要 LangGraph）
+# ============================================================
+
+# 取消注释以下行来安装 LangGraph
+# langgraph
+# langgraph-checkpoint
+
+
+# ============================================================
+# 安装说明
+# ============================================================
+# 
+# 1. 创建虚拟环境:
+#    python -m venv venv
+#    venv\Scripts\activate  (Windows)
+#    source venv/bin/activate  (Linux/Mac)
+#
+# 2. 升级 pip:
+#    python -m pip install --upgrade pip
+#
+# 3. 安装依赖:
+#    pip install -r requirements.txt
+#
+# 4. 如果遇到冲突，尝试:
+#    pip install -r requirements.txt --upgrade
+#
+# 5. 验证安装:
+#    python -c "import fastapi, torch, ultralytics; print('✅ 核心依赖安装成功')"
+#

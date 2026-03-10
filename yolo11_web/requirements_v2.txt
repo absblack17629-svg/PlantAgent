@@ -1,0 +1,31 @@
+# 依赖版本要求
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.7.4
+pydantic-settings==2.3.4
+python-multipart==0.0.9
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+aiomysql==0.2.0
+redis==5.0.1
+numpy==1.26.4
+opencv-python==4.9.0.80
+pillow==10.2.0
+aiofiles==23.2.1
+
+# LangChain - 使用兼容版本
+langchain==0.1.20
+langchain-core==0.1.52
+langchain-community==0.0.38
+langchain-openai==0.1.7
+langgraph==0.0.55
+langgraph-checkpoint==1.0.4
+
+# HuggingFace
+transformers==4.39.1
+sentence-transformers==2.5.1
+faiss-cpu==1.7.4
+
+# 其他
+requests==2.31.0
+python-dotenv==1.0.1

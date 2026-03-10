@@ -1,0 +1,33 @@
+=== Core Functionality Test ===
+
+[1] YOLO Model Loading
+[OK] YOLO model loaded
+
+[2] Configuration
+[FAIL] Config: 'LLMConfig' object has no attribute 'provider'
+
+[3] LLM Client
+[OK] LLM client: LLMClient
+
+[4] RAG Service
+[OK] RAG service: RAGService
+
+[5] Agent System
+[OK] Agent orchestrator: NineNodeOrchestrator
+
+[6] Tools
+[OK] Tools: MemoryTool, PlantingPlanTool, WeatherTool, IrrigationTool
+
+[7] Schema Validation
+[OK] Schema validation working
+
+[8] Database Connection
+[WARN] Database: No module named 'config.database'
+
+[9] Redis Connection
+[WARN] Redis: No module named 'config.redis_config'
+
+[10] API Routers
+[OK] All routers importable
+
+=== Summary: 7 OK, 1 Failed ===

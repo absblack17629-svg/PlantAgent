@@ -1,0 +1,223 @@
+# -*- coding: utf-8 -*-
+"""
+配置管理器
+提供统一的配置访问接口
+"""
+
+from typing import Optional, Any, Dict
+from config.settings_v2 import (
+    AppConfig,
+    LLMSettings,
+    YOLOSettings,
+    RAGSettings,
+    RedisSettings,
+    DatabaseSettings,
+    FileSettings,
+    SecuritySettings,
+    get_config
+)
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+class ConfigManager:
+    """
+    配置管理器（单例模式）
+    
+    提供统一的配置访问接口，支持：
+    - 配置加载和验证
+    - 环境变量覆盖
+    - 配置热更新（可选）
+    - 配置属性访问
+    """
+    
+    _instance: Optional['ConfigManager'] = None
+    _config: Optional[AppConfig] = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if self._config is None:
+            self._load_config()
+    
+    def _load_config(self):
+        """加载配置"""
+        try:
+            self._config = get_config()
+            logger.info("配置加载成功")
+            self._log_config_summary()
+        except Exception as e:
+            logger.error(f"配置加载失败: {e}")
+            raise
+    
+    def _log_config_summary(self):
+        """记录配置摘要"""
+        if not self._config:
+            return
+        
+        logger.info(f"应用名称: {self._config.app_name}")
+        logger.info(f"应用版本: {self._config.app_version}")
+        logger.info(f"调试模式: {self._config.debug}")
+        logger.info(f"数据库: {self._config.database.host}:{self._config.database.port}")
+        logger.info(f"Redis: {self._config.redis.host}:{self._config.redis.port}")
+        logger.info(f"YOLO模型: {self._config.yolo.model_path}")
+        logger.info(f"RAG离线模式: {self._config.rag.offline_mode}")
+    
+    def reload(self):
+        """重新加载配置"""
+        logger.info("重新加载配置...")
+        # 清除缓存
+        get_config.cache_clear()
+        self._load_config()
+    
+    def validate(self) -> bool:
+        """验证配置"""
+        try:
+            if not self._config:
+                return False
+            
+            # 验证必要的配置项
+            checks = [
+                (self._config.database.host, "数据库主机未配置"),
+                (self._config.database.database, "数据库名称未配置"),
+                (self._config.yolo.model_path, "YOLO模型路径未配置"),
+            ]
+            
+            for value, error_msg in checks:
+                if not value:
+                    logger.error(error_msg)
+                    return False
+            
+            logger.info("配置验证通过")
+            return True
+            
+        except Exception as e:
+            logger.error(f"配置验证失败: {e}")
+            return False
+    
+    # ==================== 属性访问器 ====================
+    
+    @property
+    def app(self) -> AppConfig:
+        """获取应用配置"""
+        return self._config
+    
+    @property
+    def llm(self) -> LLMSettings:
+        """获取 LLM 配置"""
+        return self._config.llm
+    
+    @property
+    def yolo(self) -> YOLOSettings:
+        """获取 YOLO 配置"""
+        return self._config.yolo
+    
+    @property
+    def rag(self) -> RAGSettings:
+        """获取 RAG 配置"""
+        return self._config.rag
+    
+    @property
+    def redis(self) -> RedisSettings:
+        """获取 Redis 配置"""
+        return self._config.redis
+    
+    @property
+    def database(self) -> DatabaseSettings:
+        """获取数据库配置"""
+        return self._config.database
+    
+    @property
+    def file(self) -> FileSettings:
+        """获取文件配置"""
+        return self._config.file
+    
+    @property
+    def security(self) -> SecuritySettings:
+        """获取安全配置"""
+        return self._config.security
+    
+    # ==================== 便捷方法 ====================
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """
+        获取配置值（支持点号路径）
+        
+        Args:
+            key: 配置键，支持点号路径，如 "llm.max_tokens"
+            default: 默认值
+            
+        Returns:
+            配置值
+            
+        Examples:
+            >>> config_manager.get("llm.max_tokens")
+            2000
+            >>> config_manager.get("yolo.confidence_threshold")
+            0.5
+        """
+        try:
+            parts = key.split(".")
+            value = self._config
+            
+            for part in parts:
+                value = getattr(value, part, None)
+                if value is None:
+                    return default
+            
+            return value
+            
+        except Exception as e:
+            logger.warning(f"获取配置失败 {key}: {e}")
+            return default
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典"""
+        if not self._config:
+            return {}
+        
+        return {
+            "app": {
+                "name": self._config.app_name,
+                "version": self._config.app_version,
+                "debug": self._config.debug,
+                "host": self._config.host,
+                "port": self._config.port,
+            },
+            "llm": {
+                "dashscope_model": self._config.llm.dashscope_model,
+                "max_tokens": self._config.llm.max_tokens,
+                "temperature": self._config.llm.temperature,
+            },
+            "yolo": {
+                "model_path": self._config.yolo.model_path,
+                "confidence_threshold": self._config.yolo.confidence_threshold,
+            },
+            "rag": {
+                "offline_mode": self._config.rag.offline_mode,
+                "top_k": self._config.rag.top_k,
+            },
+            "database": {
+                "host": self._config.database.host,
+                "port": self._config.database.port,
+                "database": self._config.database.database,
+            },
+            "redis": {
+                "host": self._config.redis.host,
+                "port": self._config.redis.port,
+            }
+        }
+
+
+# 创建全局配置管理器实例
+config_manager = ConfigManager()
+
+
+# 便捷函数
+def get_config_manager() -> ConfigManager:
+    """获取配置管理器实例"""
+    return config_manager

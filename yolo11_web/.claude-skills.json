@@ -1,0 +1,252 @@
+{
+  "version": "1.0",
+  "skill_directories": [
+    "claude_skills/algorithmic-art",
+    "claude_skills/brand-guidelines",
+    "claude_skills/canvas-design",
+    "claude_skills/doc-coauthoring",
+    "claude_skills/docx",
+    "claude_skills/frontend-design",
+    "claude_skills/internal-comms",
+    "claude_skills/mcp-builder",
+    "claude_skills/pdf",
+    "claude_skills/planning-planning-with-files",
+    "claude_skills/pptx",
+    "claude_skills/skill-creator",
+    "claude_skills/slack-gif-creator",
+    "claude_skills/superpowers-brainstorming",
+    "claude_skills/superpowers-dispatching-parallel-agents",
+    "claude_skills/superpowers-executing-plans",
+    "claude_skills/superpowers-finishing-a-development-branch",
+    "claude_skills/superpowers-receiving-code-review",
+    "claude_skills/superpowers-requesting-code-review",
+    "claude_skills/superpowers-subagent-driven-development",
+    "claude_skills/superpowers-systematic-debugging",
+    "claude_skills/superpowers-test-driven-development",
+    "claude_skills/superpowers-using-git-worktrees",
+    "claude_skills/superpowers-using-superpowers",
+    "claude_skills/superpowers-verification-before-completion",
+    "claude_skills/superpowers-writing-plans",
+    "claude_skills/superpowers-writing-skills",
+    "claude_skills/theme-factory",
+    "claude_skills/web-artifacts-builder",
+    "claude_skills/webapp-testing",
+    "claude_skills/xlsx"
+  ],
+  "skills": [
+    {
+      "name": "object_detection",
+      "description": "对图片进行目标检测，识别其中的对象并返回检测结果，支持结果缓存避免重复检测",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "要检测的图片文件路径"
+          }
+        },
+        "required": [
+          "image_path"
+        ]
+      }
+    },
+    {
+      "name": "knowledge_query",
+      "description": "查询农业知识库，获取相关领域的专业知识和建议，使用RAG检索增强生成技术",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "要查询的问题或主题"
+          }
+        },
+        "required": [
+          "question"
+        ]
+      }
+    },
+    {
+      "name": "analysis",
+      "description": "对检测结果进行智能分析，提供专业建议和解读",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "用户的问题或分析需求"
+          },
+          "detections": {
+            "type": "string",
+            "description": "检测结果的字符串（可以是JSON或纯文本）"
+          }
+        },
+        "required": [
+          "question",
+          "detections"
+        ]
+      }
+    },
+    {
+      "name": "create_task_plan",
+      "description": "创建任务计划笔记，记录分步骤的任务执行计划",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_description": {
+            "type": "string",
+            "description": "任务描述"
+          },
+          "steps": {
+            "type": "string",
+            "description": "任务步骤，用换行符分隔"
+          }
+        },
+        "required": [
+          "task_description",
+          "steps"
+        ]
+      }
+    },
+    {
+      "name": "update_task_progress",
+      "description": "更新任务执行进度",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "任务ID"
+          },
+          "current_step": {
+            "type": "string",
+            "description": "当前执行的步骤描述"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "description": "任务状态",
+            "default": "in_progress"
+          }
+        },
+        "required": [
+          "task_id",
+          "current_step"
+        ]
+      }
+    },
+    {
+      "name": "get_current_task",
+      "description": "获取当前任务的详细信息和进度",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "save_context_to_memory",
+      "description": "保存重要上下文到记忆系统，用于后续向量化",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "context": {
+            "type": "string",
+            "description": "上下文内容"
+          },
+          "context_type": {
+            "type": "string",
+            "enum": [
+              "conversation",
+              "tool_result",
+              "analysis",
+              "detection_result",
+              "other"
+            ],
+            "description": "上下文类型",
+            "default": "conversation"
+          }
+        },
+        "required": [
+          "context"
+        ]
+      }
+    },
+    {
+      "name": "get_task_history",
+      "description": "获取历史任务记录",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "返回的任务数量限制",
+            "default": 5
+          }
+        }
+      }
+    },
+    {
+      "name": "search_memory",
+      "description": "搜索记忆中的上下文信息，用于回忆之前的对话",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "搜索关键词"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "返回结果数量限制",
+            "default": 5
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "clear_detection_cache",
+      "description": "清理检测结果缓存",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "get_cache_stats",
+      "description": "获取缓存统计信息",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "clear_old_memory",
+      "description": "清理旧的记忆数据（保留最近N天）",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "description": "保留天数",
+            "default": 30
+          }
+        }
+      }
+    },
+    {
+      "name": "get_memory_stats",
+      "description": "获取记忆系统统计信息",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}
