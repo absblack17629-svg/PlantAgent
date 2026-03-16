@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO11 智能农业系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72F2 25%, #D96570 50%, #F2A25C 75%, #4285F4 100%);
+            --gemini-blue: #4285F4;
+            --gemini-purple: #9B72F2;
+            --gemini-pink: #D96570;
+            --gemini-orange: #F2A25C;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --bg-chat: #F8F9FA;
+            --bg-hover: #F1F3F4;
+            --text-primary: #1F1F1F;
+            --text-secondary: #5F6368;
+            --text-tertiary: #80868B;
+            --border-color: #E8EAED;
+            --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
+            --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
+            --shadow-lg: 0 4px 12px 0 rgba(60, 64, 67, 0.2);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-chat);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: var(--bg-primary);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            box-shadow: var(--shadow-md);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-hover);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .header-auth-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-auth-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-btn-login {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .header-btn-login:hover {
+            background: var(--bg-hover);
+            border-color: var(--gemini-blue);
+            color: var(--gemini-blue);
+        }
+
+        .header-btn-register {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+        }
+
+        .header-btn-register:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-btn-profile {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+        }
+
+        .header-btn-profile:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34A853;
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* 新闻页面 */
+        .news-page {
+            background: var(--bg-secondary);
+        }
+
+        .news-header {
+            background: var(--bg-primary);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--bg-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gemini-blue);
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        .auth-buttons {
+            display: none; /* 隐藏原来的登录注册按钮，改用顶部右上角的 */
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .category-btn:hover {
+            border-color: var(--gemini-blue);
+            color: var(--gemini-blue);
+            transform: translateY(-2px);
+        }
+
+        .category-btn.active {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            border-color: transparent;
+        }
+
+        .category-btn i {
+            font-size: 14px;
+        }
+
+        .auth-btn {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: inherit;
+        }
+
+        .btn-login {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-login:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-register {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .news-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+
+        .news-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .news-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-full);
+        }
+
+        .news-item {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .news-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--gemini-blue);
+        }
+
+        .news-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .news-item-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .news-item-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* 新闻详情模态框 */
+        .news-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .news-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .news-modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .news-modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .news-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .news-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            background: var(--bg-hover);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .news-modal-close:hover {
+            background: var(--gemini-blue);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .news-modal-body {
+            padding: 24px;
+        }
+
+        .news-modal-meta {
+            display: flex;
+            gap: 20px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .news-modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .news-modal-content-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+        }
+
+        .news-modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        .news-action-btn {
+            flex: 1;
+            padding: 10px 18px;
+            border-radius: var(--radius-full);
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-like {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-like:hover {
+            background: var(--gemini-pink);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-share {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+        }
+
+        .btn-share:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .news-loading {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            display: inline-flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* AI 对话页面 */
+        .chat-page {
+            background: var(--bg-chat);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-full);
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 85%;
+            animation: messageSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .user-avatar {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .ai-avatar {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--gemini-blue);
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            line-height: 1.5;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .user .bubble {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ai .bubble {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* 欢迎屏幕 */
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        .welcome-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--gemini-blue);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* 输入区域 */
+        .input-area {
+            padding: 20px 24px 24px;
+            background: var(--bg-chat);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 8px 8px 8px 16px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--gemini-blue);
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1), var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .file-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .file-btn:hover {
+            background: var(--bg-hover);
+            color: var(--gemini-blue);
+            transform: scale(1.1);
+        }
+
+        .text-input {
+            flex: 1;
+            min-height: 40px;
+            max-height: 200px;
+            background: transparent;
+            border: none;
+            padding: 8px 0;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-md);
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .send-btn:disabled {
+            background: var(--bg-hover);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        .file-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 0 0 8px 0;
+        }
+
+        .file-info::before {
+            content: '📎 ';
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+        }
+
+        .loading-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: loadingBounce 1.4s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) {
+            background: var(--gemini-blue);
+            animation-delay: 0s;
+        }
+
+        .loading-dot:nth-child(2) {
+            background: var(--gemini-purple);
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            background: var(--gemini-pink);
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.6) translateY(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1) translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 24px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 -2px 8px rgba(60, 64, 67, 0.1);
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+            min-width: 120px;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 768px) {
+            .nav-btn span {
+                display: none;
+            }
+            
+            .header {
+                padding: 10px 16px;
+            }
+            
+            .header-left .logo-text {
+                display: none;
+            }
+            
+            .header-right {
+                gap: 6px;
+            }
+            
+            .status-badge {
+                display: none;
+            }
+            
+            .header-auth-btn span {
+                display: none;
+            }
+            
+            .header-auth-btn {
+                padding: 6px 10px;
+            }
+            
+            .category-filters {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 8px;
+            }
+            
+            .category-filters::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .category-filters::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 2px;
+            }
+            
+            .category-btn {
+                flex-shrink: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="logo-text">YOLO11 智能农业</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span>运行中</span>
+                </div>
+                <div class="header-auth-buttons" id="authButtons">
+                    <button class="header-auth-btn header-btn-login" onclick="goToLogin()">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>登录</span>
+                    </button>
+                    <button class="header-auth-btn header-btn-register" onclick="goToRegister()">
+                        <i class="fas fa-user-plus"></i>
+                        <span>注册</span>
+                    </button>
+                </div>
+                <div class="header-user-menu" id="userMenu" style="display: none;">
+                    <button class="header-auth-btn header-btn-profile" onclick="goToProfile()">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="headerUsername">用户</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 新闻页面 -->
+            <div class="page news-page active" id="newsPage">
+                <div class="news-header">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="搜索农业资讯...">
+                    </div>
+                    
+                    <!-- 分类筛选按钮 -->
+                    <div class="category-filters" id="categoryFilters">
+                        <button class="category-btn active" onclick="filterByCategory('')">
+                            <i class="fas fa-th"></i> 全部
+                        </button>
+                        <button class="category-btn" onclick="filterByCategory('科技农业')">
+                            <i class="fas fa-microchip"></i> 科技农业
+                        </button>
+                        <button class="category-btn" onclick="filterByCategory('植保技术')">
+                            <i class="fas fa-leaf"></i> 植保技术
+                        </button>
+                        <button class="category-btn" onclick="filterByCategory('设施农业')">
+                            <i class="fas fa-warehouse"></i> 设施农业
+                        </button>
+                        <button class="category-btn" onclick="filterByCategory('有机农业')">
+                            <i class="fas fa-seedling"></i> 有机农业
+                        </button>
+                        <button class="category-btn" onclick="filterByCategory('节水农业')">
+                            <i class="fas fa-tint"></i> 节水农业
+                        </button>
+                    </div>
+                </div>
+                <div class="news-list" id="newsList">
+                    <div class="news-loading">
+                        <div class="loading-spinner">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                        <div>正在加载农业资讯...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 对话页面 -->
+            <div class="page chat-page" id="chatPage">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <div class="welcome-icon">✨</div>
+                        <h1 class="welcome-title">你好，我是 YOLO-SGHM 智能体</h1>
+                        <p class="welcome-subtitle">
+                            结合先进的视觉识别和自然语言处理能力，为你提供智能化的图像分析和问答服务
+                        </p>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <div class="file-info" id="fileInfo"></div>
+                    <div class="input-wrapper">
+                        <label for="imageFile" class="file-btn" title="上传图片">
+                            <i class="fas fa-image"></i>
+                            <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                        </label>
+                        <textarea class="text-input" id="textInput" placeholder="输入你的问题..." rows="1"></textarea>
+                        <button class="send-btn" id="sendBtn" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <button class="nav-btn active" onclick="switchPage('news')" id="newsBtn">
+                <i class="fas fa-newspaper"></i>
+                <span>农业资讯</span>
+            </button>
+            <button class="nav-btn" onclick="switchPage('chat')" id="chatBtn">
+                <i class="fas fa-robot"></i>
+                <span>智能助手</span>
+            </button>
+        </div>
+
+        <!-- 新闻详情模态框已移除，改为跳转到独立页面 -->
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let allNews = [];
+        const chatMessages = document.getElementById('chatMessages');
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const imageFile = document.getElementById('imageFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const searchInput = document.getElementById('searchInput');
+
+        window.onload = function() {
+            console.log('YOLO11 智能农业系统已启动');
+            checkLoginStatus();
+            initEventListeners();
+            autoResizeTextarea();
+            loadNews();
+            
+            // 根据URL hash初始化页面
+            initPageFromHash();
+            
+            // 监听hash变化
+            window.addEventListener('hashchange', initPageFromHash);
+        };
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            
+            if (token && username) {
+                // 已登录，显示用户菜单
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userMenu').style.display = 'flex';
+                document.getElementById('headerUsername').textContent = username;
+            } else {
+                // 未登录，显示登录注册按钮
+                document.getElementById('authButtons').style.display = 'flex';
+                document.getElementById('userMenu').style.display = 'none';
+            }
+        }
+
+        // 根据URL hash初始化页面
+        function initPageFromHash() {
+            const hash = window.location.hash.slice(1) || 'news';
+            switchPage(hash, false);
+        }
+
+        // 切换页面
+        function switchPage(page, updateHash = true) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            if (page === 'news') {
+                document.getElementById('newsPage').classList.add('active');
+                document.getElementById('newsBtn').classList.add('active');
+                if (updateHash) window.location.hash = 'news';
+            } else if (page === 'chat') {
+                document.getElementById('chatPage').classList.add('active');
+                document.getElementById('chatBtn').classList.add('active');
+                if (updateHash) window.location.hash = 'chat';
+            }
+        }
+
+        // 登录注册 - 跳转到独立页面
+        function goToLogin() {
+            window.location.href = '/login';
+        }
+
+        function goToRegister() {
+            window.location.href = '/register';
+        }
+
+        function goToProfile() {
+            window.location.href = '/profile';
+        }
+
+        // 分类筛选
+        let currentCategory = '';
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.category-btn').classList.add('active');
+            
+            // 筛选新闻
+            if (!category) {
+                displayNews(allNews);
+            } else {
+                const filtered = allNews.filter(news => news.category === category);
+                displayNews(filtered);
+            }
+            
+            console.log(`筛选分类: ${category || '全部'}, 结果: ${category ? allNews.filter(n => n.category === category).length : allNews.length} 条`);
+        }
+
+        // 加载新闻
+        async function loadNews() {
+            try {
+                console.log('开始加载新闻...');
+                const response = await fetch('/api/news/list?page=1&page_size=20');
+                const data = await response.json();
+                
+                console.log('新闻数据:', data);
+
+                // 兼容多种API响应格式
+                let newsItems = [];
+                if (data.items && Array.isArray(data.items)) {
+                    newsItems = data.items;
+                } else if (data.data && data.data.items && Array.isArray(data.data.items)) {
+                    newsItems = data.data.items;
+                } else if (Array.isArray(data)) {
+                    newsItems = data;
+                }
+
+                if (newsItems.length > 0) {
+                    allNews = newsItems;
+                    displayNews(allNews);
+                    console.log(`成功加载 ${newsItems.length} 条新闻`);
+                } else {
+                    document.getElementById('newsList').innerHTML = 
+                        '<div class="news-loading"><div>暂无农业资讯<br><br>💡 提示：请确保数据库中有新闻数据</div></div>';
+                }
+            } catch (error) {
+                console.error('加载新闻失败:', error);
+                document.getElementById('newsList').innerHTML = 
+                    '<div class="news-loading"><div>❌ 加载失败，请刷新重试<br><br>错误信息：' + error.message + '</div></div>';
+            }
+        }
+
+        // 显示新闻
+        function displayNews(newsList) {
+            const newsListEl = document.getElementById('newsList');
+            
+            if (!newsList || newsList.length === 0) {
+                newsListEl.innerHTML = '<div class="news-loading"><div>暂无相关资讯</div></div>';
+                return;
+            }
+
+            console.log('显示新闻列表，共', newsList.length, '条');
+            
+            newsListEl.innerHTML = newsList.map(news => `
+                <div class="news-item" onclick="viewNews(${news.id})" style="cursor: pointer;">
+                    <div class="news-item-title">${escapeHtml(news.title)}</div>
+                    <div class="news-item-summary">${escapeHtml(news.summary || news.content?.substring(0, 100) || '暂无摘要')}</div>
+                    <div class="news-item-meta">
+                        <span><i class="fas fa-eye"></i> ${news.view_count || 0}</span>
+                        <span><i class="fas fa-heart"></i> ${news.like_count || 0}</span>
+                        <span><i class="fas fa-clock"></i> ${formatTime(news.created_at)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 查看新闻详情 - 跳转到详情页面
+        function viewNews(newsId) {
+            // 跳转到新闻详情页面
+            window.location.href = `/news/${newsId}`;
+        }
+
+        // 搜索新闻 - 支持本地搜索和API搜索
+        let searchTimeout = null;
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value.trim();
+            
+            // 清除之前的定时器
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            if (!keyword) {
+                displayNews(allNews);
+                return;
+            }
+
+            // 本地搜索（即时响应）
+            const filtered = allNews.filter(news => 
+                news.title.toLowerCase().includes(keyword.toLowerCase()) || 
+                (news.summary && news.summary.toLowerCase().includes(keyword.toLowerCase()))
+            );
+            displayNews(filtered);
+            
+            // API搜索（延迟500ms，避免频繁请求）
+            searchTimeout = setTimeout(() => {
+                searchNewsFromAPI(keyword);
+            }, 500);
+        });
+        
+        // 回车键触发API搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const keyword = this.value.trim();
+                if (keyword) {
+                    searchNewsFromAPI(keyword);
+                }
+            }
+        });
+        
+        // 从API搜索新闻
+        async function searchNewsFromAPI(keyword) {
+            try {
+                console.log('API搜索:', keyword);
+                const token = localStorage.getItem('token');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(`/api/news/search?keyword=${encodeURIComponent(keyword)}&limit=50`, {
+                    headers: headers
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const newsItems = data.items || data.data?.items || data;
+                    if (Array.isArray(newsItems)) {
+                        displayNews(newsItems);
+                        console.log(`API搜索到 ${newsItems.length} 条结果`);
+                    }
+                } else {
+                    console.log('API搜索失败，使用本地搜索结果');
+                }
+            } catch (error) {
+                console.error('API搜索出错:', error);
+            }
+        }
+
+        // 格式化时间
+        function formatTime(dateStr) {
+            if (!dateStr) return '未知时间';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(hours / 24);
+            
+            if (hours < 1) return '刚刚';
+            if (hours < 24) return hours + '小时前';
+            if (days < 7) return days + '天前';
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // AI 对话功能
+        function insertPrompt(text) {
+            textInput.value = text;
+            textInput.focus();
+            checkSendable();
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+        }
+
+        function autoResizeTextarea() {
+            textInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            });
+        }
+
+        function initEventListeners() {
+            imageFile.addEventListener('change', handleFileSelect);
+            sendBtn.addEventListener('click', sendMessage);
+            textInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            textInput.addEventListener('input', checkSendable);
+        }
+
+        function handleFileSelect(e) {
+            selectedFile = null;
+            fileInfo.textContent = '';
+
+            if (e.target.files && e.target.files.length > 0) {
+                const file = e.target.files[0];
+                if (file.type.startsWith('image/')) {
+                    selectedFile = file;
+                    fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                } else {
+                    alert('请选择图片文件！');
+                    e.target.value = '';
+                }
+            }
+            checkSendable();
+        }
+
+        function checkSendable() {
+            const hasText = textInput.value.trim().length > 0;
+            const hasFile = selectedFile !== null;
+            sendBtn.disabled = !(hasText || hasFile);
+        }
+
+        async function sendMessage() {
+            const userText = textInput.value.trim();
+            const hasText = userText.length > 0;
+            const hasFile = selectedFile !== null;
+
+            if (!hasText && !hasFile) {
+                alert('请输入问题或选择图片！');
+                return;
+            }
+
+            let displayText = userText || '请分析这张图片';
+            if (hasFile) {
+                displayText += ` [图片: ${selectedFile.name}]`;
+            }
+            addMessage('user', displayText);
+
+            textInput.value = '';
+            textInput.style.height = 'auto';
+            fileInfo.textContent = '';
+            imageFile.value = '';
+            checkSendable();
+
+            const loadingId = addLoading();
+
+            try {
+                const formData = new FormData();
+                formData.append('message', userText || '请分析这张图片');
+                if (hasFile) {
+                    formData.append('image', selectedFile);
+                }
+
+                // 使用新的MCP智能助手API
+                const response = await fetch('/api/agent/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                removeLoading(loadingId);
+
+                if (data.code === 200) {
+                    const aiResponse = data.data?.response || '处理完成';
+                    addMessage('ai', aiResponse);
+                } else {
+                    addMessage('ai', `处理失败：${data.msg || data.detail || '未知错误'}`);
+                }
+
+            } catch (error) {
+                removeLoading(loadingId);
+                console.error('请求错误:', error);
+                addMessage('ai', `请求出错：${error.message}`);
+            }
+
+            selectedFile = null;
+        }
+
+        function addMessage(type, text) {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${type}-avatar`;
+            avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '✨';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+
+            setTimeout(() => {
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+
+        function addLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai';
+            loadingDiv.id = 'loading-' + Date.now();
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar ai-avatar';
+            avatar.innerHTML = '✨';
+
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.innerHTML = '<div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>';
+
+            loadingDiv.appendChild(avatar);
+            loadingDiv.appendChild(loading);
+            chatMessages.appendChild(loadingDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return loadingDiv.id;
+        }
+
+        function removeLoading(loadingId) {
+            const loadingDiv = document.getElementById(loadingId);
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function formatDetections(detections) {
+            if (!detections || detections.length === 0) {
+                return '未检测到对象';
+            }
+            return detections.map((d, i) => 
+                `${i + 1}. ${d.class || d.类别} (置信度: ${((d.confidence || d.置信度) * 100).toFixed(1)}%)`
+            ).join('\n');
+        }
+    </script>
+</body>
+</html>

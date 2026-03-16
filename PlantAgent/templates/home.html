@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO11 智能农业系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Gemini 标志性渐变色 */
+            --gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72F2 25%, #D96570 50%, #F2A25C 75%, #4285F4 100%);
+            --gemini-blue: #4285F4;
+            --gemini-purple: #9B72F2;
+            --gemini-pink: #D96570;
+            --gemini-orange: #F2A25C;
+            --gemini-green: #34A853;
+            
+            /* 背景色 */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --bg-hover: #F1F3F4;
+            
+            /* 文字色 */
+            --text-primary: #1F1F1F;
+            --text-secondary: #5F6368;
+            --text-tertiary: #80868B;
+            
+            /* 边框和阴影 */
+            --border-color: #E8EAED;
+            --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
+            --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
+            --shadow-lg: 0 4px 12px 0 rgba(60, 64, 67, 0.2);
+            
+            /* 圆角 */
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: var(--bg-primary);
+            backdrop-filter: blur(20px);
+            padding: 16px 24px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            padding: 32px 24px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 页面切换 */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 新闻网格 */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .news-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .news-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--gemini-blue);
+        }
+
+        .news-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            align-items: center;
+        }
+
+        .news-meta i {
+            margin-right: 4px;
+        }
+
+        /* Agent 页面 */
+        .agent-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .agent-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .agent-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .agent-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .agent-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        .agent-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+        }
+
+        .upload-area:hover {
+            border-color: var(--gemini-blue);
+            background: rgba(66, 133, 244, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--gemini-blue);
+            background: rgba(66, 133, 244, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            color: var(--text-tertiary);
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+            display: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 输入框 */
+        .input-box {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .input-box:focus {
+            outline: none;
+            border-color: var(--gemini-blue);
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+        }
+
+        textarea.input-box {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        /* 按钮 */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            background: var(--bg-primary);
+            padding: 12px 24px;
+            box-shadow: 0 -1px 3px rgba(60, 64, 67, 0.1);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .nav-container {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: var(--gemini-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            display: inline-flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: loadingBounce 1.4s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) {
+            background: var(--gemini-blue);
+            animation-delay: 0s;
+        }
+
+        .loading-dot:nth-child(2) {
+            background: var(--gemini-purple);
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            background: var(--gemini-pink);
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.6) translateY(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1) translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0;
+            }
+            
+            .main-content {
+                padding: 20px 16px;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .agent-card {
+                padding: 24px 20px;
+            }
+            
+            .nav-btn {
+                font-size: 14px;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="logo-text">YOLO11 智能农业</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="container">
+            <!-- 新闻页面 -->
+            <div class="page active" id="newsPage">
+                <div class="news-grid" id="newsGrid">
+                    <div class="loading">
+                        <div class="loading-spinner">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                        <div>正在加载农业资讯...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent 页面 -->
+            <div class="page" id="agentPage">
+                <div class="agent-container">
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">✨</div>
+                            <h1 class="agent-title">智能农业助手</h1>
+                            <p class="agent-subtitle">上传图片或提出问题，获取专业的农业建议</p>
+                        </div>
+
+                        <!-- 图片上传 -->
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">点击或拖拽上传图片</div>
+                            <div class="upload-hint">支持 JPG、PNG、BMP 格式</div>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                            <img id="previewImage" class="preview-image" alt="预览">
+                        </div>
+
+                        <!-- 问题输入 -->
+                        <textarea 
+                            id="questionInput" 
+                            class="input-box" 
+                            placeholder="请输入您的问题，例如：&#10;• 如何防治水稻病虫害？&#10;• 温室大棚如何控制温度？&#10;• 分析这张图片中的作物状况"
+                        ></textarea>
+
+                        <!-- 提交按钮 -->
+                        <button class="btn btn-primary" id="submitBtn" onclick="submitToAgent()">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>提交给智能助手</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-container">
+            <button class="nav-btn active" onclick="showPage('news')">
+                <i class="fas fa-newspaper"></i>
+                <span>农业资讯</span>
+            </button>
+            <button class="nav-btn" onclick="showPage('agent')">
+                <i class="fas fa-robot"></i>
+                <span>智能助手</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let allNews = [];
+
+        // 页面加载
+        window.onload = function() {
+            initUpload();
+            loadNews();
+            
+            // 根据URL hash初始化页面
+            initPageFromHash();
+            
+            // 监听hash变化
+            window.addEventListener('hashchange', initPageFromHash);
+        };
+
+        // 根据URL hash初始化页面
+        function initPageFromHash() {
+            const hash = window.location.hash.slice(1) || 'news';
+            if (hash === 'news' || hash === 'agent') {
+                showPageByHash(hash);
+            }
+        }
+
+        // 根据hash显示页面
+        function showPageByHash(page) {
+            // 更新导航按钮
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const buttons = document.querySelectorAll('.nav-btn');
+            if (page === 'news') {
+                buttons[0].classList.add('active');
+            } else {
+                buttons[1].classList.add('active');
+            }
+
+            // 显示对应页面
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+            });
+
+            if (page === 'news') {
+                document.getElementById('newsPage').classList.add('active');
+            } else {
+                document.getElementById('agentPage').classList.add('active');
+            }
+        }
+
+        // 切换页面
+        function showPage(page) {
+            // 更新URL hash
+            window.location.hash = page;
+        }
+
+        // 初始化上传功能
+        function initUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+            const previewImage = document.getElementById('previewImage');
+
+            uploadArea.addEventListener('click', () => imageInput.click());
+
+            imageInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    selectedFile = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(selectedFile);
+                }
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    selectedFile = e.dataTransfer.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(selectedFile);
+                }
+            });
+        }
+
+        // 提交给 Agent
+        async function submitToAgent() {
+            const question = document.getElementById('questionInput').value.trim();
+            
+            if (!selectedFile && !question) {
+                showNotification('请上传图片或输入问题！', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('message', question || '请分析这张图片');
+            if (selectedFile) {
+                formData.append('image', selectedFile);
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalHTML = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>智能助手思考中...</span>';
+
+            try {
+                // 使用新的MCP智能助手API
+                const response = await fetch('/api/agent/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    const response_text = data.data?.response || '处理完成';
+                    showNotification('✅ 智能助手回答：\n\n' + response_text, 'success');
+                    
+                    // 清空
+                    selectedFile = null;
+                    document.getElementById('imageInput').value = '';
+                    document.getElementById('previewImage').style.display = 'none';
+                    document.getElementById('questionInput').value = '';
+                } else {
+                    showNotification('❌ 处理失败：' + (data.msg || data.detail || '未知错误'), 'error');
+                }
+            } catch (error) {
+                console.error('请求错误:', error);
+                showNotification('❌ 请求失败：' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            }
+        }
+
+        // 加载新闻
+        async function loadNews() {
+            try {
+                const response = await fetch('/api/news/list?page=1&page_size=20');
+                const data = await response.json();
+
+                if (data.code === 200 && data.data && data.data.items) {
+                    allNews = data.data.items;
+                    displayNews(allNews);
+                } else {
+                    document.getElementById('newsGrid').innerHTML = 
+                        '<div class="loading"><div>暂无农业资讯</div></div>';
+                }
+            } catch (error) {
+                console.error('加载新闻失败:', error);
+                document.getElementById('newsGrid').innerHTML = 
+                    '<div class="loading"><div>加载失败，请刷新重试</div></div>';
+            }
+        }
+
+        // 显示新闻
+        function displayNews(newsList) {
+            const newsGrid = document.getElementById('newsGrid');
+            
+            if (!newsList || newsList.length === 0) {
+                newsGrid.innerHTML = '<div class="loading"><div>暂无相关资讯</div></div>';
+                return;
+            }
+
+            newsGrid.innerHTML = newsList.map(news => `
+                <div class="news-card" onclick="viewNews(${news.id})">
+                    <div class="news-title">${news.title}</div>
+                    <div class="news-summary">${news.summary || '暂无摘要'}</div>
+                    <div class="news-meta">
+                        <span><i class="fas fa-eye"></i>${news.view_count || 0}</span>
+                        <span><i class="fas fa-heart"></i>${news.like_count || 0}</span>
+                        <span><i class="fas fa-clock"></i>${formatTime(news.created_at)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 查看新闻详情
+        function viewNews(newsId) {
+            const news = allNews.find(n => n.id === newsId);
+            if (news) {
+                showNotification(`📰 ${news.title}\n\n${news.summary || news.content?.substring(0, 200) || '暂无内容'}...\n\n💡 详情页面开发中`, 'info');
+            }
+        }
+
+        // 格式化时间
+        function formatTime(dateStr) {
+            if (!dateStr) return '未知时间';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(hours / 24);
+            
+            if (hours < 1) return '刚刚';
+            if (hours < 24) return hours + '小时前';
+            if (days < 7) return days + '天前';
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            alert(message);
+        }
+    </script>
+</body>
+</html>

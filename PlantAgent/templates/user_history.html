@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览历史 - YOLO11 智能农业系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gemini-gradient: linear-gradient(135deg, #4285F4 0%, #9B72F2 25%, #D96570 50%, #F2A25C 75%, #4285F4 100%);
+            --gemini-blue: #4285F4;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --text-primary: #1F1F1F;
+            --text-secondary: #5F6368;
+            --border-color: #E8EAED;
+            --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
+            --radius-md: 16px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+        }
+        .header {
+            background: var(--bg-primary);
+            padding: 16px 24px;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .back-btn {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover { background: var(--gemini-blue); color: white; }
+        .page-title { font-size: 20px; font-weight: 600; flex: 1; }
+        .clear-btn {
+            padding: 8px 16px;
+            background: #EA4335;
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .clear-btn:hover { background: #D33828; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+        .history-item {
+            position: relative;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .history-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(60, 64, 67, 0.2);
+        }
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -33px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gemini-blue);
+            border: 3px solid var(--bg-secondary);
+        }
+        .history-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--bg-secondary);
+            color: var(--gemini-blue);
+            font-size: 18px;
+            margin-right: 16px;
+            float: left;
+        }
+        .history-content { overflow: hidden; }
+        .history-action { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .history-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+        .history-detail { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .history-time { font-size: 13px; color: var(--text-secondary); }
+        .empty-state { text-align: center; padding: 60px 24px; color: var(--text-secondary); }
+        .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .loading { text-align: center; padding: 60px 24px; color: var(--text-secondary); }
+        .loading-spinner { display: inline-flex; gap: 8px; margin-bottom: 16px; }
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: loadingBounce 1.4s infinite ease-in-out;
+        }
+        .loading-dot:nth-child(1) { background: var(--gemini-blue); animation-delay: 0s; }
+        .loading-dot:nth-child(2) { background: #9B72F2; animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { background: #D96570; animation-delay: 0.4s; }
+        @keyframes loadingBounce {
+            0%, 80%, 100% { transform: scale(0.6) translateY(0); opacity: 0.5; }
+            40% { transform: scale(1) translateY(-10px); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回</span>
+            </button>
+            <div class="page-title">
+                <i class="fas fa-history"></i> 浏览历史
+            </div>
+            <button class="clear-btn" onclick="clearHistory()">
+                <i class="fas fa-trash"></i> 清空历史
+            </button>
+        </div>
+    </div>
+    <div class="container">
+        <div id="historyContainer">
+            <div class="loading">
+                <div class="loading-spinner">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+                <div>正在加载历史记录...</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            checkLogin();
+            loadHistory();
+        };
+        function checkLogin() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                window.location.href = '/login';
+            }
+        }
+        async function loadHistory() {
+            const token = localStorage.getItem('token');
+            console.log('开始加载历史记录...');
+            try {
+                const response = await fetch('/api/history/?limit=100', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                console.log('响应状态:', response.status);
+                if (response.ok) {
+                    const histories = await response.json();
+                    console.log('历史记录数据:', histories);
+                    displayHistory(histories);
+                } else {
+                    const errorText = await response.text();
+                    console.error('加载失败:', errorText);
+                    showError('加载历史记录失败: ' + response.status);
+                }
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+                showError('加载失败：' + error.message);
+            }
+        }
+        function displayHistory(histories) {
+            const container = document.getElementById('historyContainer');
+            if (!histories || histories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📜</div>
+                        <div>暂无浏览历史</div>
+                        <p style="margin-top: 8px; font-size: 14px;">开始浏览内容后会显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = `
+                <div class="timeline">
+                    ${histories.map(history => `
+                        <div class="history-item" onclick="viewHistoryItem(${history.item_id}, '${history.action_type}')">
+                            <div class="history-icon">${getActionIcon(history.action_type)}</div>
+                            <div class="history-content">
+                                <div class="history-action">${getActionLabel(history.action_type)}</div>
+                                ${history.item_title ? `<div class="history-title">${escapeHtml(history.item_title)}</div>` : ''}
+                                ${history.action_detail ? `<div class="history-detail">${escapeHtml(history.action_detail)}</div>` : ''}
+                                <div class="history-time">
+                                    <i class="fas fa-clock"></i> ${formatTime(history.created_at)}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        function getActionIcon(actionType) {
+            const icons = {
+                'view_news': '<i class="fas fa-newspaper"></i>',
+                'search': '<i class="fas fa-search"></i>',
+                'detection': '<i class="fas fa-image"></i>',
+                'chat': '<i class="fas fa-comments"></i>'
+            };
+            return icons[actionType] || '<i class="fas fa-circle"></i>';
+        }
+        function getActionLabel(actionType) {
+            const labels = {
+                'view_news': '浏览新闻',
+                'search': '搜索',
+                'detection': '图像检测',
+                'chat': 'AI对话'
+            };
+            return labels[actionType] || actionType;
+        }
+        function viewHistoryItem(itemId, actionType) {
+            if (actionType === 'view_news' && itemId) {
+                window.location.href = `/news/${itemId}`;
+            }
+        }
+        async function clearHistory() {
+            if (!confirm('确定要清空所有历史记录吗？此操作不可恢复！')) {
+                return;
+            }
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/history/', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok || response.status === 204) {
+                    alert('✅ 历史记录已清空');
+                    loadHistory();
+                } else {
+                    alert('❌ 清空失败');
+                }
+            } catch (error) {
+                console.error('清空历史记录失败:', error);
+                alert('❌ 操作失败：' + error.message);
+            }
+        }
+        function showError(message) {
+            document.getElementById('historyContainer').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">❌</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = '/profile';
+            }
+        }
+        function formatTime(dateStr) {
+            if (!dateStr) return '未知时间';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(hours / 24);
+            if (hours < 1) return '刚刚';
+            if (hours < 24) return hours + '小时前';
+            if (days < 7) return days + '天前';
+            return date.toLocaleDateString('zh-CN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

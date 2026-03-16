@@ -1,0 +1,358 @@
+# -*- coding: utf-8 -*-
+"""
+消息相关 Schema
+
+定义消息、工具调用和记忆管理模型。
+"""
+
+from datetime import datetime
+from typing import List, Optional, Dict, Any, Union
+from pydantic import BaseModel, Field
+
+
+class ToolCall(BaseModel):
+    """工具调用模型
+    
+    表示 LLM 请求调用的工具。
+    
+    Attributes:
+        id: 工具调用 ID
+        type: 调用类型（通常为 "function"）
+        function: 函数信息
+    """
+    id: str = Field(..., description="工具调用 ID")
+    type: str = Field(default="function", description="调用类型")
+    function: Dict[str, Any] = Field(..., description="函数信息")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "call_123",
+                "type": "function",
+                "function": {
+                    "name": "detect_disease",
+                    "arguments": '{"image_path": "/path/to/image.jpg"}'
+                }
+            }
+        }
+
+
+class Message(BaseModel):
+    """消息模型
+    
+    表示对话中的一条消息，支持多种角色和内容类型。
+    
+    Attributes:
+        role: 消息角色（user, system, assistant, tool）
+        content: 消息内容
+        tool_calls: 工具调用列表（仅 assistant 角色）
+        tool_call_id: 工具调用 ID（仅 tool 角色）
+        name: 工具名称（仅 tool 角色）
+        metadata: 额外的元数据
+        timestamp: 消息时间戳
+    """
+    role: str = Field(..., description="消息角色")
+    content: Optional[str] = Field(None, description="消息内容")
+    tool_calls: Optional[List[ToolCall]] = Field(None, description="工具调用列表")
+    tool_call_id: Optional[str] = Field(None, description="工具调用 ID")
+    name: Optional[str] = Field(None, description="工具名称")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="元数据")
+    timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "role": "user",
+                "content": "请检测这张图片中的水稻病害",
+                "metadata": {"image_path": "/path/to/image.jpg"},
+                "timestamp": "2026-03-07T10:00:00"
+            }
+        }
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典格式
+        
+        Returns:
+            字典格式的消息，排除 None 值和内部字段
+        """
+        data = {
+            "role": self.role,
+        }
+        
+        if self.content is not None:
+            data["content"] = self.content
+        
+        if self.tool_calls is not None:
+            data["tool_calls"] = [
+                tc.model_dump() for tc in self.tool_calls
+            ]
+        
+        if self.tool_call_id is not None:
+            data["tool_call_id"] = self.tool_call_id
+        
+        if self.name is not None:
+            data["name"] = self.name
+        
+        return data
+    
+    def to_llm_format(self) -> Dict[str, Any]:
+        """转换为 LLM API 格式
+        
+        Returns:
+            适合 LLM API 的字典格式
+        """
+        return self.to_dict()
+    
+    @classmethod
+    def user_message(
+        cls,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> "Message":
+        """创建用户消息
+        
+        Args:
+            content: 消息内容
+            metadata: 元数据
+            **kwargs: 其他参数
+            
+        Returns:
+            用户消息实例
+        """
+        return cls(
+            role="user",
+            content=content,
+            metadata=metadata or {},
+            **kwargs
+        )
+    
+    @classmethod
+    def system_message(
+        cls,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> "Message":
+        """创建系统消息
+        
+        Args:
+            content: 消息内容
+            metadata: 元数据
+            **kwargs: 其他参数
+            
+        Returns:
+            系统消息实例
+        """
+        return cls(
+            role="system",
+            content=content,
+            metadata=metadata or {},
+            **kwargs
+        )
+    
+    @classmethod
+    def assistant_message(
+        cls,
+        content: Optional[str] = None,
+        tool_calls: Optional[List[ToolCall]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> "Message":
+        """创建助手消息
+        
+        Args:
+            content: 消息内容
+            tool_calls: 工具调用列表
+            metadata: 元数据
+            **kwargs: 其他参数
+            
+        Returns:
+            助手消息实例
+        """
+        return cls(
+            role="assistant",
+            content=content,
+            tool_calls=tool_calls,
+            metadata=metadata or {},
+            **kwargs
+        )
+    
+    @classmethod
+    def tool_message(
+        cls,
+        content: str,
+        tool_call_id: str,
+        name: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> "Message":
+        """创建工具消息
+        
+        Args:
+            content: 工具执行结果
+            tool_call_id: 工具调用 ID
+            name: 工具名称
+            metadata: 元数据
+            **kwargs: 其他参数
+            
+        Returns:
+            工具消息实例
+        """
+        return cls(
+            role="tool",
+            content=content,
+            tool_call_id=tool_call_id,
+            name=name,
+            metadata=metadata or {},
+            **kwargs
+        )
+    
+    def __str__(self) -> str:
+        """字符串表示"""
+        if self.content:
+            preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
+            return f"[{self.role}] {preview}"
+        elif self.tool_calls:
+            return f"[{self.role}] {len(self.tool_calls)} tool call(s)"
+        else:
+            return f"[{self.role}] (empty)"
+
+
+class Memory(BaseModel):
+    """记忆管理模型
+    
+    管理对话历史和消息存储。
+    
+    Attributes:
+        messages: 消息列表
+        max_messages: 最大消息数量
+        metadata: 额外的元数据
+    """
+    messages: List[Message] = Field(default_factory=list, description="消息列表")
+    max_messages: int = Field(default=100, description="最大消息数量", ge=1)
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="元数据")
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def add_message(self, message: Message) -> None:
+        """添加消息到历史
+        
+        Args:
+            message: 要添加的消息
+        """
+        self.messages.append(message)
+        
+        # 如果超过最大数量，删除最旧的消息
+        if len(self.messages) > self.max_messages:
+            self.messages = self.messages[-self.max_messages:]
+    
+    def add_messages(self, messages: List[Message]) -> None:
+        """批量添加消息
+        
+        Args:
+            messages: 消息列表
+        """
+        for message in messages:
+            self.add_message(message)
+    
+    def get_recent(self, n: int) -> List[Message]:
+        """获取最近的 n 条消息
+        
+        Args:
+            n: 消息数量
+            
+        Returns:
+            最近的 n 条消息列表
+        """
+        return self.messages[-n:] if n > 0 else []
+    
+    def get_by_role(self, role: str) -> List[Message]:
+        """获取指定角色的所有消息
+        
+        Args:
+            role: 消息角色
+            
+        Returns:
+            指定角色的消息列表
+        """
+        return [msg for msg in self.messages if msg.role == role]
+    
+    def clear(self) -> None:
+        """清空所有消息"""
+        self.messages.clear()
+    
+    def to_dict_list(self) -> List[Dict[str, Any]]:
+        """转换为字典列表
+        
+        Returns:
+            字典列表格式的消息历史
+        """
+        return [msg.to_dict() for msg in self.messages]
+    
+    def to_llm_format(self) -> List[Dict[str, Any]]:
+        """转换为 LLM API 格式
+        
+        Returns:
+            适合 LLM API 的消息列表
+        """
+        return self.to_dict_list()
+    
+    def count(self) -> int:
+        """获取消息数量
+        
+        Returns:
+            消息总数
+        """
+        return len(self.messages)
+    
+    def is_empty(self) -> bool:
+        """判断是否为空
+        
+        Returns:
+            是否没有消息
+        """
+        return len(self.messages) == 0
+    
+    def get_last_message(self) -> Optional[Message]:
+        """获取最后一条消息
+        
+        Returns:
+            最后一条消息，如果为空则返回 None
+        """
+        return self.messages[-1] if self.messages else None
+    
+    def get_last_user_message(self) -> Optional[Message]:
+        """获取最后一条用户消息
+        
+        Returns:
+            最后一条用户消息，如果没有则返回 None
+        """
+        user_messages = self.get_by_role("user")
+        return user_messages[-1] if user_messages else None
+    
+    def get_last_assistant_message(self) -> Optional[Message]:
+        """获取最后一条助手消息
+        
+        Returns:
+            最后一条助手消息，如果没有则返回 None
+        """
+        assistant_messages = self.get_by_role("assistant")
+        return assistant_messages[-1] if assistant_messages else None
+    
+    def __len__(self) -> int:
+        """支持 len() 函数"""
+        return len(self.messages)
+    
+    def __iter__(self):
+        """支持迭代"""
+        return iter(self.messages)
+    
+    def __getitem__(self, index: Union[int, slice]) -> Union[Message, List[Message]]:
+        """支持索引和切片"""
+        return self.messages[index]
+    
+    def __str__(self) -> str:
+        """字符串表示"""
+        return f"Memory({len(self.messages)} messages)"

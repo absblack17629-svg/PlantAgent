@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(canvas-design)",
+      "Bash(python -m canvas-design:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

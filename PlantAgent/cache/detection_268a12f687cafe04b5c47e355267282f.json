@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-03-07T17:15:25.257170",
+  "operation": "detection",
+  "file_path": "static\\uploads\\BACTERAILBLIGHT3_095.jpg",
+  "result": "检测到 1 个对象：\n1. Bacterialblight (置信度: 0.84)\n"
+}
